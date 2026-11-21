@@ -6,6 +6,7 @@
 		"useIgnoreFile": true
 	},
 	"files": {
+		"includes": ["**", "!**/*.md"],
 		"ignoreUnknown": false
 	},
 	"formatter": {
