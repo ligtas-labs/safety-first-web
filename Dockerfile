@@ -7,7 +7,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-RUN pnpm lint && pnpm typecheck && pnpm build
+RUN pnpm lint && pnpm typecheck && pnpm test && pnpm build
 
 FROM nginxinc/nginx-unprivileged:stable-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
