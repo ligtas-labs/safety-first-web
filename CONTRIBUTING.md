@@ -2,6 +2,36 @@
 
 Start with the [README](README.md) for setup and supported commands. Use the [PRD](docs/PRD.md) and [technical design](docs/DESIGN.md) for requirements and design decisions.
 
+## Project Structure
+
+```text
+safety-first-web/
+├── .github/            # GitHub automation and PR templates
+│   └── workflows/      # Continuous integration workflows
+│       └── image.yml   # Builds and publishes the web image
+├── docs/               # Requirements, design, and development guides
+├── public/             # Static assets served as-is
+│   ├── favicon.svg     # Browser tab icon
+│   └── icons.svg       # SVG icon sprite
+├── src/                # React application source
+│   ├── assets/         # Images imported by the app
+│   ├── App.css         # Starter view styles
+│   ├── App.test.tsx    # Vitest and Testing Library interaction test
+│   ├── App.tsx         # Starter app component
+│   ├── index.css       # Global styles
+│   └── main.tsx        # React entry point
+├── biome.json          # Lint and formatting configuration
+├── Dockerfile          # Installs dependencies, checks the app, and builds the image
+├── index.html          # Vite HTML entry point
+├── nginx.conf          # Static serving and SPA fallback
+├── package.json        # Dependencies and development scripts
+├── pnpm-lock.yaml      # Locked dependency versions
+├── tsconfig.json       # TypeScript project references
+├── tsconfig.app.json   # App and test type-check settings
+├── tsconfig.node.json  # Vite config type-check settings
+└── vite.config.ts      # Vite and React plugin configuration
+```
+
 ## Ticket and branch workflow
 
 1. Pick up the Linear issue and confirm ownership, affected repos, dependencies and acceptance criteria. Use stable PRD requirement IDs where they apply.
