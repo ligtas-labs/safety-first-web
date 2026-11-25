@@ -4,11 +4,16 @@ on:
     branches: [development, main]
   push:
     branches: [development, main]
+concurrency:
+  group: ${{ github.event_name == 'push' && github.ref == 'refs/heads/development' && 'development-delivery' || github.run_id }}
+  cancel-in-progress: false
 permissions:
   contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      digest: ${{ steps.image.outputs.digest }}
     permissions:
       contents: read
       packages: write
@@ -33,3 +38,33 @@ jobs:
           build-args: VITE_API_BASE_URL=${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'https://safety-first-api.michaelconstantino.dev' || vars.STAGING_API_URL }}
       - if: github.event_name == 'push'
         run: echo "ghcr.io/ligtas-labs/safety-first-web@${{ steps.image.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
+  deploy-development:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/development' && vars.DEPLOY_DEVELOPMENT == 'true'
+    runs-on: ubuntu-latest
+    environment: development
+    permissions:
+      contents: read
+    timeout-minutes: 10
+    steps:
+      - name: Update web on the VPS
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SSH_HOST_KEY: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          VPS_HOST: ${{ vars.VPS_HOST }}
+          DIGEST: ${{ needs.build.outputs.digest }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          head_sha=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/development" --jq '.object.sha')
+          if [[ "$head_sha" != "$GITHUB_SHA" ]]; then
+            echo "A newer development commit exists. Skipping this image."
+            exit 0
+          fi
+          [[ "$DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/release
+          chmod 600 ~/.ssh/release
+          printf '%s\n' "$SSH_HOST_KEY" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/release -o BatchMode=yes -o StrictHostKeyChecking=yes "deploy@$VPS_HOST" "/opt/safety-first/release.sh web 'ghcr.io/ligtas-labs/safety-first-web@$DIGEST'"
