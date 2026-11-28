@@ -35,7 +35,9 @@ jobs:
           platforms: ${{ vars.IMAGE_PLATFORM || 'linux/amd64' }}
           push: ${{ github.event_name == 'push' }}
           tags: ghcr.io/ligtas-labs/safety-first-web:${{ github.sha }}
-          build-args: VITE_API_BASE_URL=${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'https://safety-first-api.michaelconstantino.dev' || vars.STAGING_API_URL }}
+          build-args: |
+            VITE_API_BASE_URL=${{ (github.base_ref == 'main' || github.ref_name == 'main') && 'https://safety-first-api.michaelconstantino.dev' || vars.STAGING_API_URL }}
+            VITE_NEON_AUTH_URL=${{ vars[(github.base_ref == 'main' || github.ref_name == 'main') && 'PRODUCTION_NEON_AUTH_URL' || 'STAGING_NEON_AUTH_URL'] }}
       - if: github.event_name == 'push'
         run: echo "ghcr.io/ligtas-labs/safety-first-web@${{ steps.image.outputs.digest }}" >> "$GITHUB_STEP_SUMMARY"
   deploy-development:

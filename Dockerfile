@@ -5,6 +5,8 @@ RUN npm install --global pnpm@10.25.0
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 COPY . .
+ARG VITE_NEON_AUTH_URL
+ENV VITE_NEON_AUTH_URL=$VITE_NEON_AUTH_URL
 ARG VITE_API_BASE_URL
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN pnpm lint && pnpm typecheck && pnpm test && pnpm build

@@ -91,3 +91,9 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) for the Linear issue workflow, testing e
 [Web](https://github.com/ligtas-labs/safety-first-web) · [API](https://github.com/ligtas-labs/safety-first-api) · [Mobile](https://github.com/ligtas-labs/safety-first-mobile) · [Linear handbook](https://linear.app/ligtas-labs/document/developer-handbook-web-caa3c910b5ba)
 
 [Product requirements](docs/PRD.md) · [Technical design](docs/DESIGN.md) · [Contributing](CONTRIBUTING.md) · [Agent instructions](AGENTS.md)
+
+## Authentication
+
+Set VITE_NEON_AUTH_URL to the public Neon Auth base URL for the same branch as the API. Set VITE_API_BASE_URL to the API origin. Local builds read these variables at build time. Container builds accept both as build arguments. The image workflow reads STAGING_NEON_AUTH_URL and PRODUCTION_NEON_AUTH_URL from repository variables.
+
+Use the Neon branch email verification code during student signup. Organization selection follows verification. Teachers must be provisioned operationally before creating an organization or accepting an email invitation. API authorization controls which account, classes, and directory entries appear.
