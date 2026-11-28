@@ -36,9 +36,14 @@ test("signup moves to verification and submits the emailed code for that address
 	const user = userEvent.setup();
 	mocks.signup.mockResolvedValue({ error: null });
 	mocks.verify.mockResolvedValue({ error: null });
-	render(<SignIn />);
-	await user.click(
-		screen.getByRole("button", { name: "Create student account" }),
+	const onVerified = vi.fn();
+	history.replaceState(null, "", "/mobile/login?state=fixture");
+	render(
+		<SignIn
+			initialMode="signup"
+			oauthQuery="state=fixture"
+			onVerified={onVerified}
+		/>,
 	);
 	await user.type(screen.getByLabelText("Display name"), "Sam");
 	await user.type(screen.getByLabelText("Email"), "sam@example.test");
@@ -48,6 +53,7 @@ test("signup moves to verification and submits the emailed code for that address
 	);
 	await user.type(await screen.findByLabelText("Verification code"), "123456");
 	await user.click(screen.getByRole("button", { name: "Verify email" }));
+	await waitFor(() => expect(onVerified).toHaveBeenCalledOnce());
 	expect(mocks.verify).toHaveBeenCalledWith("/email-otp/verify-email", {
 		method: "POST",
 		body: { email: "sam@example.test", otp: "123456" },
@@ -74,8 +80,7 @@ test("an expired recovery link displays the provider error", async () => {
 test("requests recovery without exposing account existence", async () => {
 	const user = userEvent.setup();
 	mocks.recover.mockResolvedValue({ error: null });
-	render(<SignIn />);
-	await user.click(screen.getByRole("button", { name: "Recover account" }));
+	render(<SignIn initialMode="recover" />);
 	await user.type(screen.getByLabelText("Email"), "sam@example.test");
 	await user.click(screen.getByRole("button", { name: "Recover account" }));
 	expect(

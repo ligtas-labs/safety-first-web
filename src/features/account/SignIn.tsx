@@ -1,16 +1,26 @@
 import { type FormEvent, useState } from "react";
 import { auth, navigateOAuth } from "./client";
 
+const authPaths = {
+	signin: "/sign-in",
+	signup: "/sign-up",
+	recover: "/recover",
+};
+
 export function SignIn({
 	reset = false,
+	initialMode = "signin",
+	onVerified,
 	oauthQuery,
 }: {
 	reset?: boolean;
+	initialMode?: keyof typeof authPaths;
+	onVerified?: () => void;
 	oauthQuery?: string;
 }) {
 	const [mode, setMode] = useState<
 		"signin" | "signup" | "recover" | "reset" | "verify"
-	>(reset ? "reset" : "signin");
+	>(reset ? "reset" : initialMode);
 	const [message, setMessage] = useState("");
 	const [address, setAddress] = useState("");
 	const [busy, setBusy] = useState(false);
@@ -41,7 +51,9 @@ export function SignIn({
 						email,
 						password,
 						name,
-						callbackURL: location.origin,
+						callbackURL: oauthQuery
+							? location.href
+							: new URL("/sign-in", location.origin).href,
 					});
 					break;
 				case "signin":
@@ -91,6 +103,7 @@ export function SignIn({
 				setMessage("Enter the verification code sent to your email.");
 			}
 			if (mode === "verify") {
+				onVerified?.();
 				setMode("signin");
 				setMessage("Email verified. You can now sign in.");
 			}
@@ -99,7 +112,7 @@ export function SignIn({
 					"If the address has an account, check your email for a recovery link.",
 				);
 			if (mode === "reset") {
-				history.replaceState(null, "", "/");
+				history.replaceState(null, "", "/sign-in");
 				setMode("signin");
 				setMessage("Password updated. Sign in to continue.");
 			}
@@ -166,19 +179,25 @@ export function SignIn({
 			<nav>
 				{(["signin", "signup", "recover", "verify"] as const)
 					.filter((x) => x !== mode)
-					.map((x) => (
-						<button
-							key={x}
-							type="button"
-							disabled={busy}
-							onClick={() => {
-								setMode(x);
-								setMessage("");
-							}}
-						>
-							{titles[x]}
-						</button>
-					))}
+					.map((x) =>
+						!oauthQuery && x !== "verify" ? (
+							<a key={x} href={authPaths[x]}>
+								{titles[x]}
+							</a>
+						) : (
+							<button
+								key={x}
+								type="button"
+								disabled={busy}
+								onClick={() => {
+									setMode(x);
+									setMessage("");
+								}}
+							>
+								{titles[x]}
+							</button>
+						),
+					)}
 			</nav>
 		</section>
 	);

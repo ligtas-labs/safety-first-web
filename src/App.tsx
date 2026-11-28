@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { auth } from "./features/account/client";
 import { Dashboard } from "./features/account/Dashboard";
 import { MobileAuthorization } from "./features/account/MobileAuthorization";
@@ -16,6 +16,12 @@ function SignedIn({ name }: { name: string }) {
 		</QueryClientProvider>
 	);
 }
+function Navigate({ to }: { to: string }) {
+	useEffect(() => {
+		location.replace(to);
+	}, [to]);
+	return <p role="status">Opening page…</p>;
+}
 function Session() {
 	if (!auth) throw new Error("Missing auth configuration");
 	const session = auth.useSession();
@@ -29,9 +35,18 @@ function Session() {
 			</p>
 		);
 	if (location.pathname === "/reset-password") return <SignIn reset />;
-	if (location.pathname === "/recover") return <SignIn />;
+	if (location.pathname === "/recover") return <SignIn initialMode="recover" />;
 	if (session.isPending) return <p role="status">Checking your session…</p>;
-	if (!session.data?.user) return <SignIn />;
+	if (!session.data?.user) {
+		if (location.pathname === "/dashboard") return <Navigate to="/sign-in" />;
+		return (
+			<SignIn
+				initialMode={location.pathname === "/sign-up" ? "signup" : "signin"}
+			/>
+		);
+	}
+	if (location.pathname !== "/dashboard" && location.pathname !== "/invite")
+		return <Navigate to="/dashboard" />;
 	return <SignedIn key={session.data.user.id} name={session.data.user.name} />;
 }
 export default function App() {

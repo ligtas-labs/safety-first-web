@@ -12,7 +12,8 @@ export function MobileAuthorization() {
 	const [busy, setBusy] = useState(false);
 	if (!query) return <p role="alert">Start sign-in from the Android app.</p>;
 	if (session.isPending) return <p role="status">Checking session…</p>;
-	if (!session.data?.user) return <SignIn oauthQuery={query} />;
+	if (!session.data?.user)
+		return <SignIn oauthQuery={query} onVerified={() => location.reload()} />;
 	async function send(accept: boolean) {
 		if (!auth) return;
 		setBusy(true);
@@ -32,6 +33,18 @@ export function MobileAuthorization() {
 			navigateOAuth(result.data.url);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : "Unable to continue.");
+			setBusy(false);
+		}
+	}
+	async function switchAccount() {
+		setBusy(true);
+		try {
+			const result = await auth?.signOut();
+			if (!result || result.error)
+				throw new Error("Could not sign out. Please retry.");
+			location.reload();
+		} catch {
+			setError("Could not sign out. Please retry.");
 			setBusy(false);
 		}
 	}
@@ -56,6 +69,11 @@ export function MobileAuthorization() {
 			{consent && (
 				<button type="button" disabled={busy} onClick={() => send(false)}>
 					Decline
+				</button>
+			)}
+			{!consent && (
+				<button type="button" disabled={busy} onClick={switchAccount}>
+					Use a different account
 				</button>
 			)}
 			<p role="alert">{error}</p>

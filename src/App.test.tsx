@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { afterEach, expect, test, vi } from "vitest";
 import App from "./App";
 
@@ -8,16 +7,20 @@ vi.mock("./features/account/client", () => ({
 	auth: { useSession: () => ({ data: null, isPending: false }) },
 	ApiError: class extends Error {},
 }));
-afterEach(cleanup);
-test("signed-out users can choose signup and recovery", async () => {
-	const user = userEvent.setup();
+afterEach(() => {
+	cleanup();
+	history.replaceState(null, "", "/");
+});
+test.each([
+	["/sign-in", "Sign in"],
+	["/sign-up", "Create student account"],
+	["/recover", "Recover account"],
+])("%s opens its own auth form", (path, title) => {
+	history.replaceState(null, "", path);
 	render(<App />);
-	expect(screen.getByRole("heading", { name: "Sign in" })).toBeDefined();
-	await user.click(
-		screen.getByRole("button", { name: "Create student account" }),
-	);
-	expect(screen.getByLabelText("Display name")).toBeDefined();
-	await user.click(screen.getByRole("button", { name: "Recover account" }));
+	expect(screen.getByRole("heading", { name: title })).toBeDefined();
 	expect(screen.getByLabelText("Email")).toBeDefined();
-	expect(screen.queryByLabelText("Password")).toBeNull();
+	expect(Boolean(screen.queryByLabelText("Password"))).toBe(
+		path !== "/recover",
+	);
 });
