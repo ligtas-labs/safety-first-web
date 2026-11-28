@@ -3,7 +3,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import App from "./App";
 
-vi.mock("./features/account/client", () => ({
+vi.mock("@/lib/auth-client", () => ({
 	auth: { useSession: () => ({ data: null, isPending: false }) },
 	ApiError: class extends Error {},
 }));

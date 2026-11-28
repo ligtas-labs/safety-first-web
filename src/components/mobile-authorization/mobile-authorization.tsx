@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { auth, navigateOAuth } from "./client";
-import { SignIn } from "./SignIn";
+import { AuthLayout, SignIn } from "@/components/sign-in";
+import { Button } from "@/components/ui";
+import { auth, navigateOAuth } from "@/lib/auth-client";
 
 export function MobileAuthorization() {
 	if (!auth) throw new Error("Missing auth configuration");
@@ -49,7 +50,7 @@ export function MobileAuthorization() {
 		}
 	}
 	return (
-		<section>
+		<AuthLayout>
 			<h1>
 				{consent
 					? "Authorize Safety First Android"
@@ -63,20 +64,20 @@ export function MobileAuthorization() {
 					<p>Return address: {params.get("redirect_uri")}</p>
 				</>
 			)}
-			<button type="button" disabled={busy} onClick={() => send(true)}>
+			<Button type="button" disabled={busy} onClick={() => send(true)}>
 				{consent ? "Allow and return to app" : "Continue"}
-			</button>
+			</Button>
 			{consent && (
-				<button type="button" disabled={busy} onClick={() => send(false)}>
+				<Button type="button" disabled={busy} onClick={() => send(false)}>
 					Decline
-				</button>
+				</Button>
 			)}
 			{!consent && (
-				<button type="button" disabled={busy} onClick={switchAccount}>
+				<Button type="button" disabled={busy} onClick={switchAccount}>
 					Use a different account
-				</button>
+				</Button>
 			)}
 			<p role="alert">{error}</p>
-		</section>
+		</AuthLayout>
 	);
 }

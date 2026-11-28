@@ -1,5 +1,8 @@
 import { type FormEvent, useState } from "react";
-import { auth, navigateOAuth } from "./client";
+import { Button, Input } from "@/components/ui";
+import { auth, navigateOAuth } from "@/lib/auth-client";
+import { AuthLayout } from "./auth-layout";
+import { SignInButton } from "./sign-in-button";
 
 const authPaths = {
 	signin: "/sign-in",
@@ -125,19 +128,26 @@ export function SignIn({
 		}
 	}
 	return (
-		<section>
+		<AuthLayout>
 			<h1>{titles[mode]}</h1>
 			<form onSubmit={submit}>
 				{mode === "signup" && (
-					<label>
+					<label htmlFor="sign-in-field-1">
 						Display name
-						<input name="name" maxLength={120} required autoComplete="name" />
+						<Input
+							id="sign-in-field-1"
+							name="name"
+							maxLength={120}
+							required
+							autoComplete="name"
+						/>
 					</label>
 				)}
 				{mode !== "reset" && (
-					<label>
+					<label htmlFor="sign-in-field-2">
 						Email
-						<input
+						<Input
+							id="sign-in-field-2"
 							type="email"
 							value={address}
 							onChange={(e) => setAddress(e.target.value)}
@@ -148,9 +158,10 @@ export function SignIn({
 					</label>
 				)}
 				{mode === "verify" && (
-					<label>
+					<label htmlFor="sign-in-field-3">
 						Verification code
-						<input
+						<Input
+							id="sign-in-field-3"
 							name="otp"
 							autoComplete="one-time-code"
 							inputMode="numeric"
@@ -159,9 +170,10 @@ export function SignIn({
 					</label>
 				)}
 				{mode !== "recover" && mode !== "verify" && (
-					<label>
+					<label htmlFor="sign-in-field-4">
 						Password
-						<input
+						<Input
+							id="sign-in-field-4"
 							type="password"
 							name="password"
 							required
@@ -171,12 +183,10 @@ export function SignIn({
 						/>
 					</label>
 				)}
-				<button disabled={busy} type="submit">
-					{titles[mode]}
-				</button>
+				<SignInButton busy={busy}>{titles[mode]}</SignInButton>
 			</form>
 			<p role="status">{message}</p>
-			<nav>
+			<nav className="auth-links" aria-label="Account options">
 				{(["signin", "signup", "recover", "verify"] as const)
 					.filter((x) => x !== mode)
 					.map((x) =>
@@ -185,7 +195,8 @@ export function SignIn({
 								{titles[x]}
 							</a>
 						) : (
-							<button
+							<Button
+								variant="link"
 								key={x}
 								type="button"
 								disabled={busy}
@@ -195,10 +206,10 @@ export function SignIn({
 								}}
 							>
 								{titles[x]}
-							</button>
+							</Button>
 						),
 					)}
 			</nav>
-		</section>
+		</AuthLayout>
 	);
 }

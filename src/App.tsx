@@ -1,10 +1,15 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { auth } from "./features/account/client";
-import { Dashboard } from "./features/account/Dashboard";
-import { MobileAuthorization } from "./features/account/MobileAuthorization";
-import { SignIn } from "./features/account/SignIn";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { MobileAuthorization } from "@/components/mobile-authorization";
+import { SignIn } from "@/components/sign-in";
+import { auth } from "@/lib/auth-client";
 import "./App.css";
+
+const Dashboard = lazy(() =>
+	import("@/components/dashboard").then(({ Dashboard }) => ({
+		default: Dashboard,
+	})),
+);
 
 function SignedIn({ name }: { name: string }) {
 	const [client] = useState(
@@ -12,7 +17,9 @@ function SignedIn({ name }: { name: string }) {
 	);
 	return (
 		<QueryClientProvider client={client}>
-			<Dashboard name={name} />
+			<Suspense fallback={<p role="status">Loading dashboard…</p>}>
+				<Dashboard name={name} />
+			</Suspense>
 		</QueryClientProvider>
 	);
 }
@@ -51,8 +58,7 @@ function Session() {
 }
 export default function App() {
 	return (
-		<main>
-			<header>Safety First</header>
+		<main className="app-shell">
 			{auth ? (
 				<Session />
 			) : (

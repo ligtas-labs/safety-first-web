@@ -2,9 +2,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, expect, test, vi } from "vitest";
-import { Dashboard } from "./Dashboard";
-import { SignIn } from "./SignIn";
+import { afterEach, beforeAll, expect, test, vi } from "vitest";
+import { Dashboard } from "@/components/dashboard";
+import { SignIn } from "@/components/sign-in";
 
 const mocks = vi.hoisted(() => ({
 	api: vi.fn(),
@@ -15,7 +15,7 @@ const mocks = vi.hoisted(() => ({
 	reset: vi.fn(),
 	logout: vi.fn(),
 }));
-vi.mock("./client", () => ({
+vi.mock("@/lib/auth-client", () => ({
 	api: mocks.api,
 	ApiError: class extends Error {},
 	auth: {
@@ -27,6 +27,13 @@ vi.mock("./client", () => ({
 		signOut: mocks.logout,
 	},
 }));
+beforeAll(() => {
+	if (!Element.prototype.getAnimations)
+		Object.defineProperty(Element.prototype, "getAnimations", {
+			configurable: true,
+			value: () => [],
+		});
+});
 afterEach(() => {
 	cleanup();
 	vi.resetAllMocks();
@@ -118,7 +125,8 @@ test.each(["student", "teacher"])(
 			screen.getByLabelText(role === "student" ? "Class code" : "Class name"),
 		).toBeDefined();
 		const user = userEvent.setup();
-		await user.clear(screen.getByLabelText("Display name"));
+		await user.click(screen.getByRole("tab", { name: "Profile" }));
+		await user.clear(await screen.findByLabelText("Display name"));
 		await user.type(screen.getByLabelText("Display name"), "New name");
 		await user.click(screen.getByRole("button", { name: "Save profile" }));
 		await waitFor(() =>
