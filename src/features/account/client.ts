@@ -29,14 +29,15 @@ export async function api<T>(
 	method = "GET",
 	body?: unknown,
 ): Promise<T> {
-	const token = await auth?.$fetch<{ token: string }>("/token");
-	if (!token?.data?.token) throw new ApiError(401);
+	const session = await auth?.getSession();
+	const token = session?.data?.session?.token;
+	if (!token) throw new ApiError(401);
 	const response = await fetch(
 		`${import.meta.env.VITE_API_BASE_URL ?? ""}/api/${path}`,
 		{
 			method,
 			headers: {
-				Authorization: `Bearer ${token.data.token}`,
+				Authorization: `Bearer ${token}`,
 				...(body ? { "Content-Type": "application/json" } : {}),
 			},
 			body: body ? JSON.stringify(body) : undefined,
