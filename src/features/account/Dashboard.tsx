@@ -54,6 +54,7 @@ function detailsFields(org?: { name: string; description: string }) {
 }
 export function Dashboard({ name }: { name: string }) {
 	const cache = useQueryClient();
+	const [joinCodes, setJoinCodes] = useState<Record<string, string>>({});
 	const [message, setMessage] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [locked, setLocked] = useState(false);
@@ -114,8 +115,12 @@ export function Dashboard({ name }: { name: string }) {
 		setMessage("");
 		try {
 			const result = await api<
-				{ joinCode?: string; status?: string } | undefined
+				{ id?: string; joinCode?: string; status?: string } | undefined
 			>(path, method, body);
+			if (result?.id && result.joinCode) {
+				const { id, joinCode } = result;
+				setJoinCodes((current) => ({ ...current, [id]: joinCode }));
+			}
 			setMessage(
 				result?.joinCode
 					? `Share this class code: ${result.joinCode}`
@@ -250,6 +255,29 @@ export function Dashboard({ name }: { name: string }) {
 								<p>
 									{c.term} {c.status}
 								</p>
+								{teacher && (
+									<>
+										{joinCodes[c.id] && (
+											<p>
+												Class code <code>{joinCodes[c.id]}</code>
+											</p>
+										)}
+										<button
+											type="button"
+											disabled={busy}
+											onClick={() => {
+												if (
+													window.confirm(
+														"Generate a new class code? The previous code will stop working.",
+													)
+												)
+													void change(`classes/${c.id}/join-code`, undefined);
+											}}
+										>
+											Generate new class code
+										</button>
+									</>
+								)}
 								{c.requests?.map((r) => (
 									<p key={r.id}>
 										{r.displayName}{" "}
