@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useState } from "react";
+import { LoadingState } from "@/components/loading";
 import { MobileAuthorization } from "@/components/mobile-authorization";
 import { SignIn } from "@/components/sign-in";
 import { auth } from "@/lib/auth-client";
@@ -17,7 +18,7 @@ function SignedIn({ name }: { name: string }) {
 	);
 	return (
 		<QueryClientProvider client={client}>
-			<Suspense fallback={<p role="status">Loading dashboard…</p>}>
+			<Suspense fallback={<LoadingState message="Loading dashboard…" />}>
 				<Dashboard name={name} />
 			</Suspense>
 		</QueryClientProvider>
@@ -27,7 +28,7 @@ function Navigate({ to }: { to: string }) {
 	useEffect(() => {
 		location.replace(to);
 	}, [to]);
-	return <p role="status">Opening page…</p>;
+	return <LoadingState message="Opening page…" />;
 }
 function Session() {
 	if (!auth) throw new Error("Missing auth configuration");
@@ -43,7 +44,8 @@ function Session() {
 		);
 	if (location.pathname === "/reset-password") return <SignIn reset />;
 	if (location.pathname === "/recover") return <SignIn initialMode="recover" />;
-	if (session.isPending) return <p role="status">Checking your session…</p>;
+	if (session.isPending)
+		return <LoadingState message="Checking your session…" />;
 	if (!session.data?.user) {
 		if (location.pathname === "/dashboard") return <Navigate to="/sign-in" />;
 		return (

@@ -136,3 +136,44 @@ test.each(["student", "teacher"])(
 		);
 	},
 );
+
+test("a teacher can see a generated class code again after reloading the dashboard", async () => {
+	const classroom = { id: "class-1", name: "Site inspection", term: "Term 1" };
+	mocks.api.mockImplementation(async (path) => {
+		if (path === "account")
+			return {
+				id: "teacher-1",
+				status: "active",
+				role: "teacher",
+				organization: { name: "School" },
+			};
+		if (path === "classes") return [classroom];
+		if (path === "classes/class-1/join-code")
+			return {
+				id: classroom.id,
+				joinCode: "DEMO3401",
+				codeExpiresAt: new Date(Date.now() + 86400000).toISOString(),
+			};
+		throw new Error("Unexpected request");
+	});
+	const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+	const view = () => (
+		<QueryClientProvider client={new QueryClient()}>
+			<Dashboard name="Casey" />
+		</QueryClientProvider>
+	);
+	try {
+		const first = render(view());
+		const user = userEvent.setup();
+		await user.click(
+			await screen.findByRole("button", { name: "Generate new class code" }),
+		);
+		expect(await screen.findAllByText(/DEMO3401/)).toHaveLength(2);
+		first.unmount();
+		render(view());
+		expect(await screen.findByText("DEMO3401")).toBeDefined();
+	} finally {
+		confirm.mockRestore();
+		sessionStorage.clear();
+	}
+});

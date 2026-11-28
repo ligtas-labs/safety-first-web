@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LoadingState } from "@/components/loading";
 import { AuthLayout, SignIn } from "@/components/sign-in";
 import { Button } from "@/components/ui";
 import { auth, navigateOAuth } from "@/lib/auth-client";
@@ -12,7 +13,7 @@ export function MobileAuthorization() {
 	const [error, setError] = useState("");
 	const [busy, setBusy] = useState(false);
 	if (!query) return <p role="alert">Start sign-in from the Android app.</p>;
-	if (session.isPending) return <p role="status">Checking session…</p>;
+	if (session.isPending) return <LoadingState message="Checking session…" />;
 	if (!session.data?.user)
 		return <SignIn oauthQuery={query} onVerified={() => location.reload()} />;
 	async function send(accept: boolean) {

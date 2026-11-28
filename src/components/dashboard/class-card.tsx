@@ -27,10 +27,12 @@ export function ClassCard({
 			</p>
 			{teacher && (
 				<div className="class-code-actions">
-					{code && (
+					{code ? (
 						<p>
 							Class code <code>{code}</code>
 						</p>
+					) : (
+						<p>Generate a code to share with students.</p>
 					)}
 					<Button
 						variant="outline"

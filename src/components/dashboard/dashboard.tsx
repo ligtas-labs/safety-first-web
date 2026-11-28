@@ -2,9 +2,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Tabs, TabsList, TabsPanel, TabsTab } from "@ui-sdk/react/tabs";
 import { type FormEvent, useState } from "react";
 import { BrandLogo } from "@/components/branding";
+import { LoadingState } from "@/components/loading";
 import { Badge, Button, Input } from "@/components/ui";
 import { ApiError, api, auth } from "@/lib/auth-client";
 import { ClassCard } from "./class-card";
+import {
+	clearClassCodes,
+	readClassCode,
+	rememberClassCode,
+} from "./class-code-storage";
 
 type Org = { id: string; name: string; description: string };
 type Account = {
@@ -105,6 +111,7 @@ export function Dashboard({ name }: { name: string }) {
 	async function signOut() {
 		setLocked(true);
 		setMessage("");
+		if (user?.id) clearClassCodes(user.id);
 		await cache.cancelQueries();
 		cache.clear();
 		try {
@@ -125,10 +132,18 @@ export function Dashboard({ name }: { name: string }) {
 		setMessage("");
 		try {
 			const result = await api<
-				{ id?: string; joinCode?: string; status?: string } | undefined
+				| {
+						id?: string;
+						joinCode?: string;
+						codeExpiresAt?: string;
+						status?: string;
+				  }
+				| undefined
 			>(path, method, body);
 			if (result?.id && result.joinCode) {
-				const { id, joinCode } = result;
+				const { id, joinCode, codeExpiresAt } = result;
+				if (user?.id && codeExpiresAt)
+					rememberClassCode(user.id, id, joinCode, codeExpiresAt);
 				setJoinCodes((current) => ({ ...current, [id]: joinCode }));
 			}
 			setMessage(
@@ -159,6 +174,7 @@ export function Dashboard({ name }: { name: string }) {
 				</Button>
 			</section>
 		);
+	if (!user && !err) return <LoadingState message="Loading your account…" />;
 	const org = directory.data?.organization;
 	return (
 		<div className="workspace">
@@ -176,7 +192,7 @@ export function Dashboard({ name }: { name: string }) {
 					</Button>
 				</p>
 			)}
-			{!user && !err && <p role="status">Loading your account…</p>}
+
 			{user && !active && (
 				<section>
 					<h1>
@@ -285,6 +301,9 @@ export function Dashboard({ name }: { name: string }) {
 					<TabsPanel value="classes">
 						<section>
 							<h2>My classes</h2>
+							{classes.isPending && (
+								<LoadingState inline message="Loading classes…" />
+							)}
 							{classes.data?.length === 0 && (
 								<p className="empty-state">
 									{teacher
@@ -296,7 +315,12 @@ export function Dashboard({ name }: { name: string }) {
 								<ClassCard
 									key={c.id}
 									classroom={c}
-									code={joinCodes[c.id]}
+									code={
+										teacher
+											? (joinCodes[c.id] ??
+												(user.id ? readClassCode(user.id, c.id) : undefined))
+											: undefined
+									}
 									teacher={teacher}
 									busy={busy}
 									generate={() =>
@@ -339,6 +363,9 @@ export function Dashboard({ name }: { name: string }) {
 					</TabsPanel>
 					{user.organization?.isManager && (
 						<TabsPanel value="organization">
+							{directory.isPending && (
+								<LoadingState inline message="Loading organization…" />
+							)}
 							{directory.data && (
 								<section>
 									<h2>Organization management</h2>
