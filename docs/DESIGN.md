@@ -10,6 +10,12 @@ Use TanStack Router for navigation, Query for server state and Zod where contrac
 
 See the [PRD](PRD.md) for stable requirement IDs, the proposed cross-app workflow and unresolved contracts. Add planned folders with their first implementation.
 
+## Account integration
+
+Resolve role and onboarding state from the API before showing protected routes. Support sign-in, sign-out, permitted profile edits, and email recovery. Clear private query state on sign-out and denied sessions. Verify both roles, expired sessions and recovery links, and sign-in with the same synthetic account created on Android. The web registration entry point is an open decision.
+
+See [Linear delivery scope](PRD.md#linear-delivery-scope) for dependencies and verification.
+
 ## Verification
 
 Preserve Vite entry points and route URLs. Verify keyboard use, phone/desktop layout, navigation and loading, empty, denied and failure states when editing dashboard features. See the [README](../README.md) for current commands and the [PRD](PRD.md) for acceptance checks.
