@@ -1,5 +1,5 @@
 import { type FormEvent, useState } from "react";
-import { auth } from "./client";
+import { auth, navigateOAuth } from "./client";
 
 export function SignIn({
 	reset = false,
@@ -54,7 +54,6 @@ export function SignIn({
 							},
 						);
 						if (response.data?.url) {
-							const { navigateOAuth } = await import("./MobileAuthorization");
 							navigateOAuth(response.data.url);
 						}
 						result = response;

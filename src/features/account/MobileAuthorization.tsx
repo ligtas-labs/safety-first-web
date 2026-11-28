@@ -1,5 +1,5 @@
-﻿import { useState } from "react";
-import { auth } from "./client";
+import { useState } from "react";
+import { auth, navigateOAuth } from "./client";
 import { SignIn } from "./SignIn";
 
 export function MobileAuthorization() {
@@ -61,14 +61,4 @@ export function MobileAuthorization() {
 			<p role="alert">{error}</p>
 		</section>
 	);
-}
-export function navigateOAuth(value: string) {
-	const next = new URL(value);
-	const neonOrigin = new URL(import.meta.env.VITE_NEON_AUTH_URL).origin;
-	if (
-		next.protocol !== "https:" ||
-		(next.origin !== location.origin && next.origin !== neonOrigin)
-	)
-		throw new Error("Unexpected authorization return address.");
-	location.assign(next.toString());
 }

@@ -47,3 +47,14 @@ export async function api<T>(
 	const text = await response.text();
 	return (text ? JSON.parse(text) : undefined) as T;
 }
+
+export function navigateOAuth(value: string) {
+	const next = new URL(value);
+	const neonOrigin = new URL(import.meta.env.VITE_NEON_AUTH_URL).origin;
+	if (
+		next.protocol !== "https:" ||
+		(next.origin !== location.origin && next.origin !== neonOrigin)
+	)
+		throw new Error("Unexpected authorization return address.");
+	location.assign(next.toString());
+}
