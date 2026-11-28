@@ -1,7 +1,13 @@
 import { type FormEvent, useState } from "react";
 import { auth } from "./client";
 
-export function SignIn({ reset = false }: { reset?: boolean }) {
+export function SignIn({
+	reset = false,
+	oauthQuery,
+}: {
+	reset?: boolean;
+	oauthQuery?: string;
+}) {
 	const [mode, setMode] = useState<
 		"signin" | "signup" | "recover" | "reset" | "verify"
 	>(reset ? "reset" : "signin");
@@ -39,7 +45,20 @@ export function SignIn({ reset = false }: { reset?: boolean }) {
 					});
 					break;
 				case "signin":
-					result = await auth.signIn.email({ email, password });
+					if (oauthQuery) {
+						const response = await auth.$fetch<{ url?: string }>(
+							"/sign-in/email",
+							{
+								method: "POST",
+								body: { email, password, oauth_query: oauthQuery },
+							},
+						);
+						if (response.data?.url) {
+							const { navigateOAuth } = await import("./MobileAuthorization");
+							navigateOAuth(response.data.url);
+						}
+						result = response;
+					} else result = await auth.signIn.email({ email, password });
 					break;
 				case "verify":
 					result = await auth.$fetch("/email-otp/verify-email", {
